@@ -1,0 +1,224 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="UTF-8">
+    <title>MaHo's amazing JIRA Project Access System</title>
+    <script src="https://code.jquery.com/jquery-3.4.0.min.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+            integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+    <script>
+                // baseURL is the base URL under which your Jira instance lives
+		var baseURL = "https://myhost/jira";
+
+                // headerLinks are the link texts and links of the buttons. 
+		var headerLinks = [
+							["Home", "/"],
+							["Behaviours", "/secure/admin/Behaviours!default.jspa"],
+							["Custom Fields", "/secure/admin/UserBrowser.jspa"],
+							["User Management", "/secure/admin/UserBrowser.jspa"],
+							["SIL Manager", "/plugins/servlet/silmanager?autoSelectTree=sil.scripts"],
+							["Scriptrunner Base", "/plugins/servlet/scriptrunner/admin/browse"],
+							["Portfolio", "/secure/PortfolioPortfolioManage.jspa?ref=1"]
+						]
+	
+	function getColor(indexpos){ 
+		return "hsl(" + 360 * indexpos + ',' +
+             70 + '%,' + 
+             95 + '%)'
+	}
+
+        /**
+         $( function() {
+
+			var listProjectKeys = [];
+
+			$.getJSON(baseURL+"/rest/api/latest/project", function (data) {
+				$.each(data, key, val) {
+
+				}
+			})
+
+			$( "#project" ).autocomplete({
+			  source: listProjectKeys
+			});
+		  } );
+         **/
+        var counterForSwitch = 0;
+        var GlobalTextFromTextInputConverter;
+        String.prototype.replaceAll = function (search, replacement) {
+            var target = this;
+            return target.replace(new RegExp(search, 'g'), replacement);
+        };
+
+        function text_converter() {
+            counterForSwitch++;
+
+            var textBoxInput = $("#textBox").val();
+            if ((counterForSwitch % 2) === 1) {
+                GlobalTextFromTextInputConverter = textBoxInput;
+                var TextForTextBox = textBoxInput;
+                TextForTextBox = TextForTextBox.replaceAll(/["]/gm, '\\"');
+                /*Escape " to /" */
+                TextForTextBox = TextForTextBox.replaceAll(/[“]/gm, '\\“');
+                /*Escape  “ to /“ */
+                TextForTextBox = TextForTextBox.replaceAll(/\n/g, ' \\n"+\n' + '"');
+                /* Add the new line with a plus */
+                TextForTextBox = "lfSet(\"description\",\n" + "\"" + TextForTextBox + "\"" + "\n);";
+                /*Add the Start and the end */
+                document.getElementById("textBox").value = TextForTextBox;
+                /*Set the value of the textarea*/
+                document.getElementById("switchForConvert").className ="tunerActiv"
+				$("#switchForConvert").prop('value', 'convert back');
+
+            } else {
+                document.getElementById("textBox").value = GlobalTextFromTextInputConverter;
+                document.getElementById("switchForConvert").className ="tuner"
+				$("#switchForConvert").prop('value', 'convert to SIL');
+
+            }
+        }
+
+        function setFocusToTextBox() {
+            $("#project").focus();
+        }
+
+        function matchProjectKeyPattern(pattern, regex) {
+            return pattern.match(regex);
+        }
+
+        function clearTextBox() {
+            $("#project").val("");
+        }
+
+        function redirect() {
+
+            var projectKey = $("#project").val();
+            projectKey = projectKey.toUpperCase().trim();
+            var regex = /^([A-Z]+)$/;
+
+
+            if (matchProjectKeyPattern(projectKey, regex)) {
+                if ($("#destination").val() == "admin view") {
+                    window.open(baseURL+"/plugins/servlet/project-config/" + projectKey + "/summary");
+                } else if ($("#destination").val() == "components") {
+                    window.open(baseURL+"/plugins/servlet/project-config/" + projectKey + "/administer-components");
+                } else if ($("#destination").val() == "users and roles") {
+                    window.open(baseURL+"/plugins/servlet/project-config/" + projectKey + "/roles");
+                } else if ($("#destination").val() == "workflows") {
+                    window.open(baseURL+"/plugins/servlet/project-config/" + projectKey + "/workflows");
+                } else if ($("#destination").val() == "screens") {
+                    window.open(baseURL+"/plugins/servlet/project-config/" + projectKey + "/screens");
+                } else {
+                    window.open(baseURL+"/projects/" + projectKey + "/issues/");
+                }
+            } else {
+                alert("Not a valid project key: " + projectKey);
+            }
+        }
+
+
+    </script>
+    <style type="text/css">
+
+        * {
+            font-family: Helvetica, Verdana, Arial, sans-serif;
+            color: #AAA;
+        }
+
+        form {
+            text-align: center;
+            margin: 0.25em auto 0 auto;
+            font-size: 4em;
+        }
+
+        input, select {
+            font-size: 1em;
+            padding: 0.05em;
+            color: #333;
+            border: 1px solid #999;
+        }
+
+        #buttons li {
+            float: left;
+            list-style: none;
+            text-align: center;
+            background-color: #033;
+            margin-right: 30px;
+            width: 150px;
+            line-height: 60px;
+        }
+
+        #buttons li a {
+            text-decoration: none;
+            color: #000;
+            display: block;
+        }
+
+        #buttons li a:hover {
+            text-decoration: none;
+            color: #000000;
+            background-color: #33B5E5;
+			border:1px solid #888;
+        }
+
+        textarea {
+            height: 15em;
+            width: 60%;
+            color: black;
+            font-size: 0.4em;
+        }
+
+        .tuner {
+            background-color: #33B5E5;
+            width: 20%;
+            height: 100px;
+            font-size: 0.4em;
+            color: #FFFFFF;
+
+        }
+
+        .tunerActiv {
+            background-color: #cb640b;
+            width: 20%;
+            height: 100px;
+            font-size: 0.4em;
+            color: #FFFFFF;
+        }
+
+
+    </style>
+</head>
+<body onload="setFocusToTextBox()">
+<ul style="margin:0 auto 0 auto" id="buttons">
+
+</ul>
+<div style="clear:both"></div>
+<hr>  <h2>Go to Project (by key)</h2>
+<form>
+    Go to
+    <select id="destination">
+        <option>admin view</option>
+        <option>components</option>
+        <option>users and roles</option>
+        <option>workflows</option>
+        <option>screens</option>
+        <option>overview</option>
+    </select> of
+    <input type="text" id="project" onfocus="clearTextBox()" onchange="redirect()"/>
+    <input type="button" style="background-color:#4d243d;color:white;" onclick="redirect()" value="GO!">
+</form>
+<hr> <h2>SIL Template Converter</h2>
+<div class="textconverter">
+    <form onsubmit="text_converter()">
+        <textarea id="textBox"></textarea>
+        <input onclick="text_converter()" style="background-color:#4d243d;color:white;height:1.5em;width:60%;" type="button" class="tuner" value="convert to SIL" id="switchForConvert">
+    </form>
+</div>
+<script>
+		headerLinks.forEach( function (item, index){
+			var buttoncolor = getColor(index / headerLinks.length);
+			$( "#buttons" ).append("<li><a style='background-color:"+buttoncolor+"' target='_new' href='"+baseURL+item[1]+"'>"+item[0]+"</a></li>" );
+		});
+</script>
+</body>
+</html>
